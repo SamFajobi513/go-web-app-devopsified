@@ -1,13 +1,102 @@
-# CICD using GitHub actions
+name: CI/CD Pipeline with SonarCloud, Trivy, and ECR
 
-name: CI/CD
-
-# Exclude the workflow to run on changes to the helm chart
 on:
   push:
     branches:
       - main
-    paths-ignore:
-      - 'helm/**'
-      - 'k8s/**'
-      - 'README.md'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: my-backend-app
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # SonarCloud Token stored in GitHub Secrets
+  AWS_ROLE: arn:aws:iam::123456789012:role/github-actions-role # Change this to your IAM role
+
+jobs:
+  build-and-analyze:
+    name: Build, SonarCloud Analysis, and Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    # Set Up Go (For Sonar Analysis of JavaScript/TypeScript)
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Go 1.22
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.22
+
+    - name: Build
+      run: go build -o go-web-app
+
+    - name: Test
+      run: go test ./...
+
+    # - name: Set up Node.js
+    #   uses: actions/setup-node@v4
+    #   with:
+    #     node-version: '18'
+
+    - name: Install Dependencies
+      run: npm install
+
+    # Run SonarCloud Analysis
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@v2
+      with:
+        projectBaseDir: .
+        args: >
+          -Dsonar.organization=my-org
+          -Dsonar.projectKey=my-project
+          -Dsonar.sources=src
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+    # - name: Configure AWS Credentials
+    #   uses: aws-actions/configure-aws-credentials@v1
+    #   with:
+    #     role-to-assume: ${{ env.AWS_ROLE }}
+    #     aws-region: ${{ env.AWS_REGION }}
+
+    # - name: Log in to Amazon ECR
+    #   id: login-ecr
+    #   uses: aws-actions/amazon-ecr-login@v2
+    #   with:
+    #     mask-password: 'true'
+
+    # - name: Build Docker Image
+    #   env:
+    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #     COMMIT_SHA: ${{ github.sha }}
+    #   run: |
+    #     docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHA .
+    #     docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHA $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+    # - name: Run Trivy Security Scan  
+    #   uses: aquasecurity/trivy-action@master
+    #   env:
+    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #   with:
+    #     image-ref: '${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest'
+    #     format: 'table'
+    #     ignore-unfixed: true
+    #     vuln-type: 'os,library'
+    #     severity: 'CRITICAL,HIGH'
+
+    # - name: Push Docker Image to Amazon ECR
+    #   env:
+    #     ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+    #     COMMIT_SHA: ${{ github.sha }}
+    #   run: |
+    #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_SHA
+    #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
