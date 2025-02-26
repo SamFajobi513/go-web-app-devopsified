@@ -59,8 +59,6 @@ jobs:
         args: >
           -Dsonar.organization=samfajobi513
           -Dsonar.projectKey=go-web-app-devopsified
-          -Dsonar.sources=src
-          -Dsonar.host.url=https://sonarcloud.io
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
     # - name: Configure AWS Credentials
