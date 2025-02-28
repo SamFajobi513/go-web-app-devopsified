@@ -58,7 +58,7 @@ jobs:
         projectBaseDir: .
         args: >
           -Dsonar.organization=samfajobi513
-          -Dsonar.projectKey=go-web-app-devopsified
+          -Dsonar.projectKey=SamFajobi513_go-web-app-devopsified
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
     # - name: Configure AWS Credentials
