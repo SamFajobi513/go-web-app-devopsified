@@ -13,7 +13,7 @@ env:
   AWS_REGION: us-east-1
   ECR_REPOSITORY: my-backend-app
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # SonarCloud Token stored in GitHub Secrets
-  AWS_ROLE: arn:aws:iam::123456789012:role/github-actions-role # Change this to your IAM role
+  AWS_ROLE: arn:aws:iam::416143650187:role/github-actions-role # Change this to your IAM role
 
 jobs:
   build-and-analyze:
@@ -61,11 +61,11 @@ jobs:
           -Dsonar.projectKey=SamFajobi513_go-web-app-devopsified
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-    # - name: Configure AWS Credentials
-    #   uses: aws-actions/configure-aws-credentials@v1
-    #   with:
-    #     role-to-assume: ${{ env.AWS_ROLE }}
-    #     aws-region: ${{ env.AWS_REGION }}
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: ${{ env.AWS_ROLE }}
+        aws-region: ${{ env.AWS_REGION }}
 
     # - name: Log in to Amazon ECR
     #   id: login-ecr
