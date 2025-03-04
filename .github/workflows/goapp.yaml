@@ -9,7 +9,7 @@ on:
       - main
   workflow_dispatch: # Allows manual trigger
 
-env:
+env: 
   AWS_REGION: us-east-1
   ECR_REPOSITORY: my-backend-app
   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # SonarCloud Token stored in GitHub Secrets
